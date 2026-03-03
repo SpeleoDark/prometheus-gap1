@@ -81,3 +81,15 @@ GAP-1/prometheus.yml — основная конфигурация Prometheus.
 Задание со звёздочкой (защита экспортёров за reverse proxy с SSL и авторизацией) не выполнялось.
 
 Все компоненты работают на одной виртуальной машине.
+
+
+GAP-2: VictoriaMetrics как удалённое хранилище
+
+- Установлена VictoriaMetrics с retention 2 недели.
+- Prometheus настроен на отправку всех метрик в VictoriaMetrics через remote_write.
+- Добавлен глобальный лейбл `site: prod` для метрик, отправляемых в хранилище.
+- Проверено наличие лейбла запросом: `curl 'http://localhost:8428/api/v1/query?query=up%7Bsite%3D%22prod%22%7D'`
+
+Файлы конфигурации:
+- `prometheus.yml` (обновлён)
+- `victoriametrics.service`
