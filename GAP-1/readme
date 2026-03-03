@@ -1,0 +1,95 @@
+1. Подготовка виртуальной машины
+Установлена ОС Ubuntu 24.04.4 LTS Server.
+
+Настроен сетевой доступ, установлены базовые пакеты: curl wget git vim htop.
+
+2. Установка CMS (Drupal)
+Установлены nginx, PHP‑FPM 8.3, PostgreSQL и необходимые расширения PHP:
+
+bash
+sudo apt install -y nginx php-fpm php-pgsql postgresql postgresql-contrib php-xml php-gd php-mbstring
+Создана база данных и пользователь для Drupal:
+
+sql
+CREATE DATABASE drupal;
+CREATE USER drupaluser WITH PASSWORD 'strong_password';
+GRANT ALL PRIVILEGES ON DATABASE drupal TO drupaluser;
+Скачана и распакована последняя версия Drupal в /var/www/html/drupal.
+
+Настроен виртуальный хост nginx для Drupal (файл /etc/nginx/sites-available/drupal).
+
+Выполнена установка Drupal через веб-интерфейс.
+
+3. Установка Prometheus exporters
+На той же ВМ установлены экспортёры для сбора метрик со всех компонентов:
+
+Компонент	Экспортёр	Порт
+Системные метрики	node_exporter	9100
+Nginx	nginx_exporter	9113
+PostgreSQL	postgres_exporter	9187
+PHP‑FPM	php-fpm_exporter (hipages)	9253
+Доступность CMS	blackbox_exporter	9115
+Все экспортёры настроены как systemd-сервисы и запущены.
+Проверено, что каждый отдаёт метрики по соответствующему порту.
+
+4. Установка и настройка Prometheus
+Скачан и установлен Prometheus версии 3.5.1.
+
+Создан пользователь prometheus, подготовлены директории /etc/prometheus и /var/lib/prometheus.
+
+Создан конфигурационный файл /etc/prometheus/prometheus.yml со следующими job'ами:
+
+prometheus (сам мониторинг)
+
+node (node_exporter)
+
+nginx (nginx_exporter)
+
+postgres (postgres_exporter)
+
+php-fpm (php-fpm_exporter)
+
+blackbox (blackbox_exporter для проверки главной страницы CMS)
+
+Интервал сбора метрик установлен 5 секунд.
+
+Prometheus запущен как systemd-сервис, слушает на порту 9090 (доступен по адресу http://localhost:9090).
+
+5. Проверка работоспособности
+Все экспортёры и Prometheus активны.
+
+В веб-интерфейсе Prometheus все target'ы имеют статус UP.
+
+Метрики собираются и доступны для запросов.
+
+6. Сохранение конфигураций в репозиторий
+Создана локальная директория GAP-1.
+
+Скопированы файлы конфигурации:
+
+prometheus.yml
+
+Alertmanager не устанавливался
+
+Репозиторий инициализирован, файлы закоммичены и отправлены на GitHub:
+https://github.com/SpeleoDark/prod
+
+Файлы конфигурации
+GAP-1/prometheus.yml — основная конфигурация Prometheus.
+
+Примечания
+Задание со звёздочкой (защита экспортёров за reverse proxy с SSL и авторизацией) не выполнялось.
+
+Все компоненты работают на одной виртуальной машине.
+
+
+GAP-2: VictoriaMetrics как удалённое хранилище
+
+- Установлена VictoriaMetrics с retention 2 недели.
+- Prometheus настроен на отправку всех метрик в VictoriaMetrics через remote_write.
+- Добавлен глобальный лейбл `site: prod` для метрик, отправляемых в хранилище.
+- Проверено наличие лейбла запросом: `curl 'http://localhost:8428/api/v1/query?query=up%7Bsite%3D%22prod%22%7D'`
+
+Файлы конфигурации:
+- `prometheus.yml` (обновлён)
+- `victoriametrics.service`
