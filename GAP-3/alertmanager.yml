@@ -1,8 +1,8 @@
 global:
   smtp_smarthost: 'smtp.gmail.com:587'
-  smtp_from: 'speleodark@gmail.com'
-  smtp_auth_username: 'speleodark@gmail.com'
-  smtp_auth_password: 'rhpj xdsp rhua rqux'   # пароль приложения (не обычный пароль)
+  smtp_from: 'mail.com'
+  smtp_auth_username: 'mail.com'
+  smtp_auth_password: 'pass'   # пароль приложения (не обычный пароль)
   smtp_require_tls: true
 
 route:
@@ -23,15 +23,15 @@ route:
 receivers:
   - name: 'default'
     email_configs:
-      - to: 'speleodark@gmail.com'
+      - to: 'mail.com'
 
   - name: 'telegram-critical'
     telegram_configs:
-      - bot_token: '8302762107:AAHU9cShiyQ5-_t7iqLXr2lPMNkls4szIqY'           # токен бота от @BotFather
-        chat_id: 8302762107                     # ваш chat ID
+      - bot_token: 'YOUR_BOT_TOKEN'           # токен бота от @BotFather
+        chat_id: id123                     # ваш chat ID
         api_url: 'https://api.telegram.org'
         parse_mode: 'HTML'
 
   - name: 'email-warning'
     email_configs:
-      - to: 'speleodark@gmail.com'                # получатель предупреждений
+      - to: 'mail.com'                # получатель предупреждений
